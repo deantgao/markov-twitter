@@ -45,6 +45,7 @@ def make_text(chains):
 
     key = choice(chains.keys())
     words = [key[0], key[1]]
+
     while key in chains:
         # Keep looping until we have a key that isn't in the chains
         # (which would mean it was the end of our original text)
@@ -59,21 +60,57 @@ def make_text(chains):
     return " ".join(words)
 
 
-def tweet(chains):
+def tweet(text):
     # Use Python os.environ to get at environmental variables
     # Note: you must run `source secrets.sh` before running this file
     # to make sure these environmental variables are set.
-    pass
+    
+    api = twitter.Api(consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
+                      consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
+                      access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
+                      access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
+
+    print api.VerifyCredentials()
+
+
+    status = api.PostUpdate(text)
+
+    print status.text
+
+    #keep_tweeting(filenames)
+
+def keep_tweeting(filenames):
+    # Open the files and turn them into one long string
+    text = open_and_read_file(filenames)
+
+    # Get a Markov chain
+
+    chains = make_chains(text)
+
+    tweet_text = make_text(chains)
+    while len(tweet_text) > 140:
+        tweet_text = make_text(chains)
+
+
+        # Your task is to write a new function tweet, that will take chains as input
+
+    tweet(tweet_text)
+
+ 
+    tweet_again = raw_input("Enter to tweet again [q to quit] > ")
+        
+    if tweet_again == "q":
+        return
+        
+    else:
+        keep_tweeting(filenames)
+        print "Please press enter or 'q'"
+
+
 
 # Get the filenames from the user through a command line prompt, ex:
 # python markov.py green-eggs.txt shakespeare.txt
 filenames = sys.argv[1:]
+#filenames = ["green-eggs.txt", "gettysburg.txt"]
 
-# Open the files and turn them into one long string
-text = open_and_read_file(filenames)
-
-# Get a Markov chain
-chains = make_chains(text)
-
-# Your task is to write a new function tweet, that will take chains as input
-# tweet(chains)
+keep_tweeting(filenames)
